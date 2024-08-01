@@ -68,7 +68,7 @@ public class JwtService {
                 .compact();
     }
 
-    private String[] getRolesFromClaims(Claims claims) {
+/*    private String[] getRolesFromClaims(Claims claims) {
         Object rolesObject = claims.get(ROLES_CLAIM_NAME);
 
         if (rolesObject == null) {
@@ -82,8 +82,33 @@ public class JwtService {
         List<String> parsedRoles = new LinkedList<>();
 
         for (Object o : rawRoles) {
-            if (o instanceof String parsedRole) {
+            if (o instanceof String parsedRole) { //won't find the roles, see solution below
                 parsedRoles.add(parsedRole);
+            }
+        }
+
+        return parsedRoles.toArray(new String[0]);
+    }*/
+
+    private String[] getRolesFromClaims(Claims claims) {
+        Object rolesObject = claims.get(ROLES_CLAIM_NAME);
+
+        if (rolesObject == null) {
+            throw new IllegalArgumentException("'" + ROLES_CLAIM_NAME + "' claim not found");
+        }
+        if (!(rolesObject instanceof Iterable<?> rawRoles)) {
+            throw new IllegalArgumentException("claims '" + ROLES_CLAIM_NAME + "' value is invalid");
+        }
+
+        List<String> parsedRoles = new LinkedList<>();
+
+        for (Object o : rawRoles) {
+            if (o instanceof LinkedHashMap<?, ?> map) {
+                map.values().forEach(t -> {
+                    if (t instanceof String) {
+                        parsedRoles.add((String) t);
+                    }
+                });
             }
         }
 
